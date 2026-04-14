@@ -1,0 +1,7 @@
+Start project 
+
+lsof -ti :3000 -ti :5001 | xargs kill -9
+npm run dev
+
+
+

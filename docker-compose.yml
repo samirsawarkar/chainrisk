@@ -1,0 +1,59 @@
+services:
+  chainrisk:
+    image: ghcr.io/samirsawarkar/chainrisk:latest
+    container_name: chainrisk
+    env_file:
+      - .env
+    environment:
+      CAPE_PG_HOST: postgres
+      CAPE_PG_PORT: 5432
+      CAPE_PG_DB: cape
+      CAPE_PG_USER: cape
+      CAPE_PG_PASSWORD: cape
+      CAPE_REDIS_HOST: redis
+      CAPE_REDIS_PORT: 6379
+      CAPE_REDIS_DB: 0
+    ports:
+      - "3000:3000"
+      - "5001:5001"
+    restart: unless-stopped
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: chainrisk-postgres
+    environment:
+      POSTGRES_DB: cape
+      POSTGRES_USER: cape
+      POSTGRES_PASSWORD: cape
+    ports:
+      - "5432:5432"
+    volumes:
+      - cape-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cape -d cape"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: chainrisk-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - cape-redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  cape-postgres-data:
+  cape-redis-data:
